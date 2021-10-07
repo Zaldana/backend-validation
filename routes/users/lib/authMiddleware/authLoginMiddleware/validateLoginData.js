@@ -18,9 +18,7 @@ function validateLoginData(req, res, next) {
     } else {
 
         next();
-
     }
-
 }
 
 module.exports = {

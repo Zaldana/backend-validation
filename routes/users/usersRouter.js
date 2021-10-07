@@ -1,11 +1,20 @@
 var express = require('express');
 var router = express.Router();
 
-const { createUser, login } = require("./controller/userController");
-const { checkIsEmpty } = require("./lib/authMiddleware/authCreateMiddleware/checkIsEmpty");
-const { checkIsUndefined } = require("./lib/authMiddleware/checkIsUndefined");
-const { validateCreateData } = require("./lib/authMiddleware/authCreateMiddleware/validateCreateData");
-const { validateLoginData } = require("./lib/authMiddleware/authLoginData/validateLoginDate");
+const {
+  createUser,
+  login,
+  updateUser,
+} = require("./controller/userController");
+
+const { 
+  checkIsEmpty, 
+  checkIsUndefined, 
+  validateCreateData,
+  validateLoginData,
+  validateUpdateData,
+  jwtMiddleware 
+} = require("./lib/authMiddleware");
 
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
@@ -16,7 +25,6 @@ router.post(
   checkIsUndefined, 
   checkIsEmpty, 
   validateCreateData, 
-  validateLoginData, 
   createUser
 );
 
@@ -26,6 +34,15 @@ router.post(
   checkIsEmpty, 
   validateLoginData, 
   login
+);
+
+router.put(
+  "/profile",
+  jwtMiddleware,
+  checkIsUndefined,
+  checkIsEmpty,
+  validateUpdateData,
+  updateUser
 );
 
 module.exports = router;

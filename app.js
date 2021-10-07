@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -8,7 +10,7 @@ var mongoose = require("mongoose");
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users/usersRouter');
 
-mongoose.connect("mongodb://localhost:27017/backend-validation")
+mongoose.connect(process.env.MONGO_DB)
 .then(() => {
   console.log("MONGODB CONNECTED");
 })

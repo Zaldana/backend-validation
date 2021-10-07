@@ -1,49 +1,11 @@
 const User = require("../model/User");
 const bcrypt = require('bcryptjs');
-const { isEmpty, isAlpha, isAlphanumeric, isEmail, isStrongPassword } = require('validator');
+var jwt = require('jsonwebtoken');
+const errorHandler = require('../../utils/errorHandler/errorHandler')
 
 async function createUser(req, res) {
 
     const { firstName, lastName, username, email, password } = req.body;
-    
-    //REFACTORED
-    // let body = req.body;
-    // let errObj = {};
-
-    // for (let key in body) {
-    //     if (isEmpty(body[key])) {
-    //         errObj[`${key}`] = `${key} cannot be empty`;
-    //     }
-    // }
-
-    // if (!isAlpha(firstName)) {
-    //     errObj.firstName = "First Name cannot have special characters or numbers";
-    // }
-
-    // if (!isAlpha(lastName)) {
-    //     errObj.lastName = "Last Name cannot have special characters or numbers";
-    // }
-
-    // if (!isAlphanumeric(username)) {
-    //     errObj.username = "Username cannot have special characters";
-    // }
-
-    // if (!isEmail(email)) {
-    //     errObj.email = "please enter a valid email";
-    // }
-
-    // if (!isStrongPassword(password)) {
-    //     errObj.password =
-    //         "Your password must contain 1 lowercase, 1 uppercase, 1 number, 1 special character and at least 8 characters long";
-    // }
-
-    // if (Object.keys(errObj).length > 0) {
- 
-    //     return res.status(500).json({
-    //         message: "error",
-    //         error: errObj,
-    //     });
-    // }
 
     try {
 
@@ -64,7 +26,7 @@ async function createUser(req, res) {
     
     } catch (error) {
      
-        res.status(500).json({ message: "error", error: error.message });
+        res.status(500).json({ message: "error", error: errorHandler(error) });
     
     }
 }
@@ -73,27 +35,6 @@ async function login(req, res) {
 
     const { email, password } = req.body;
 
-
-    //REFACTORED
-    // if (isEmpty(email)) {
-    //     errObj.email = "email field cannot be empty"
-    // }
-
-    // if (isEmpty(password)) {
-    //     errObj.password = "password cannot be empty"
-    // }
-
-    // if (!isEmail(email)) {
-    //     errObj.email = "please enter valid email"
-    // }
-
-    // if (Object.keys(errObj).length > 0) {
-    //     return res.status(500).json({
-    //         message: "error",
-    //         error: errObj,
-    //     });
-    // }
-    
     let foundUser = await User.findOne({ email: email });
     
    try {
@@ -106,6 +47,20 @@ async function login(req, res) {
            });
 
        } else {
+
+           let jwtToken = jwt.sign(
+
+            {
+                email: foundUser.email,
+                username: foundUser.username,
+            },
+
+            process.env.JWT_SECRET,
+            {expiresIn: "24h" }
+           
+            );
+
+           res.json({ message: "success", payload: jwtToken })
            
         let matchedPassword = await bcrypt.compare(password, foundUser.password);
 
@@ -113,16 +68,8 @@ async function login(req, res) {
            
             res.send("Please check email and password is correct")
        
-        } else {
-            
-            res.json({
-                message: "success",
-            
-            });
-       }
-    
+        }
     }
-
 
     } catch (e) {
         
@@ -131,10 +78,37 @@ async function login(req, res) {
             error: e.message,
         });
     }
+}
 
+async function updateUser(req, res) {
+
+    const { password } = req.body;
+
+    try {
+
+        const decodedData = res.locals.decodedData;
+        let salt = await bcrypt.genSalt(10);
+        let hashed = await bcrypt.hash(password, salt);
+
+        req.body.password = hashed;
+
+        let updatedUser = await User.findOneAndUpdate(
+            { email: decodedData.email },
+            req.body,
+            { new: true }
+        );
+
+        res.json({ message: "success", payload: updatedUser });
+
+    } catch (error) {
+
+        res.status(500).json({ message: "error", error: error.message });
+
+    }
 }
 
 module.exports = {
     createUser,
-    login
+    login,
+    updateUser,
 }
