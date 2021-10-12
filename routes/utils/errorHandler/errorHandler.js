@@ -30,8 +30,8 @@ function errorHandler(err) {
                 break;
             default:
                 message = "Something went wrong, please contact support!";
-
         }
+
     } else if (err.message) {
 
         return err.message;
@@ -39,7 +39,6 @@ function errorHandler(err) {
     }
 
     return message;
-
 }
 
 module.exports = errorHandler;
