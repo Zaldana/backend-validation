@@ -5,6 +5,7 @@ const {
   createUser,
   login,
   updateUser,
+  getUserInfo
 } = require("./controller/userController");
 
 const { 
@@ -16,9 +17,10 @@ const {
   jwtMiddleware 
 } = require("./lib/authMiddleware");
 
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+router.get('/',
+  jwtMiddleware,
+  getUserInfo
+);
 
 router.post(
   "/create-user", 

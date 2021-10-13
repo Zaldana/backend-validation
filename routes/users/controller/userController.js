@@ -107,8 +107,26 @@ async function updateUser(req, res) {
     }
 }
 
+async function getUserInfo(req, res) {
+
+    try {
+
+        const decodedData = res.locals.decodedData;
+        const foundUser = await User.findOne({ email: decodedData.email }).populate(
+            "orderHistory", "-orderOwner -__v");
+
+        res.json({ message: "success", payload: foundUser })
+
+    } catch (e) {
+
+        res.status(500).json({ message: "error", error: errorHandler(error) });
+
+    }
+};
+
 module.exports = {
     createUser,
     login,
     updateUser,
+    getUserInfo
 }
